@@ -1,12 +1,13 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import String, Boolean, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from typing import List
+from typing import List, Optional
+
 
 db = SQLAlchemy()
 
-
 class User(db.Model):
+    __tablename__ = "user"
     id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
     firstname: Mapped[str] = mapped_column(String(120))
@@ -14,16 +15,8 @@ class User(db.Model):
     email: Mapped[str] = mapped_column(
         String(120), unique=True, nullable=False)
     password: Mapped[str] = mapped_column(nullable=False)
-    is_active: Mapped[bool] = mapped_column(Boolean(), nullable=False)
 
-    posts: Mapped[List["Post"]] = relationship(back_populates="author")
-    comments: Mapped[List["Comment"]] = relationship(back_populates="author")
-    followers: Mapped[List["Follower"]] = relationship(
-        back_populates="user_to", foreign_keys="Follower.user_to_id"
-    )
-    following: Mapped[List["Follower"]] = relationship(
-        back_populates="user_from", foreign_keys="Follower.user_from_id"
-    )
+    favorite_list: Mapped[List["Favorite"]] = relationship("Favorite", back_populates="user")
 
     def serialize(self):
         return {
@@ -33,47 +26,78 @@ class User(db.Model):
             # do not serialize the password, its a security breach
         }
 
+class Planet(db.Model):
+    __tablename__ = "planet"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    climate: Mapped[str] = mapped_column(String(100))
+    terrain: Mapped[str] = mapped_column(String(100))
 
-class Post(db.Model):
-    id: Mapped[int] = mapped_column(primary_key=True)  # aca creo la primary
-    # aca la clave foranea del id de un user
+    favorites: Mapped[List["Favorite"]] = relationship("Favorite", back_populates="planet")
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "climate": self.climate,
+            "terrain": self.terrain
+        }
+
+class People(db.Model):
+    __tablename__ = "people"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    birth_year: Mapped[str] = mapped_column(String(20))
+    gender: Mapped[str] = mapped_column(String(20))
+
+    favorites: Mapped[List["Favorite"]] = relationship("Favorite", back_populates="character")
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "birth_year": self.birth_year,
+            "gender": self.gender
+        }
+class Vehicle(db.Model):
+    __tablename__ = "vehicle"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    model: Mapped[str] = mapped_column(String(100))
+    vehicle_class: Mapped[str] = mapped_column(String(100))
+    manufacturer: Mapped[str] = mapped_column(String(100))
+
+    favorites: Mapped[List["Favorite"]] = relationship("Favorite", back_populates="vehicle")
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "model": self.model,
+            "vehicle_class": self.vehicle_class,
+            "manufacturer": self.manufacturer
+        }         
+
+
+class Favorites(db.Model):
+    __tablename__ = "favorite"
+    id: Mapped[int] = mapped_column(primary_key=True)      
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
-    # relacion con el user q hizo el post
-    author: Mapped["User"] = relationship(back_populates="posts")
-    media_items: Mapped[List["Media"]] = relationship(back_populates="post")
-    comments: Mapped[List["Comment"]] = relationship(back_populates="post")
+    planet_id: Mapped[Optional[int]] = mapped_column(ForeignKey("planet.id"))
+    character_id: Mapped[Optional[int]] = mapped_column(ForeignKey("people.id"))
 
+    user: Mapped["User"] = relationship("User", back_populates="favorite_list")
+    planet: Mapped[Optional["Planet"]] = relationship("Planet", back_populates="favorites")
+    character: Mapped[Optional["People"]] = relationship("People", back_populates="favorites")
+    vehicle_id: Mapped[Optional[int]] = mapped_column(ForeignKey("vehicle.id"))
+    vehicle: Mapped[Optional["Vehicle"]] = relationship("Vehicle", back_populates="favorites")
 
-class Media(db.Model):
-        id: Mapped[int] = mapped_column(primary_key=True)
-        type: Mapped[str] = mapped_column(String(20), nullable=False)
-        url: Mapped[str] = mapped_column(String(255), nullable=False)
-        post_id: Mapped[int] = mapped_column(ForeignKey("post.id"))
-        post: Mapped["Post"] = relationship(back_populates="media_items")
-
-
-class Comment(db.Model):
-        id: Mapped[int] = mapped_column(primary_key=True)
-        comment_text: Mapped[str] = mapped_column(String(200), nullable=False)
-        author_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
-        post_id: Mapped[int] = mapped_column(ForeignKey("post.id"))
-
-        author: Mapped["User"] = relationship(back_populates="comments")
-        post: Mapped["Post"] = relationship(back_populates="comments")
-
-
-class Follower(db.Model):
-        id: Mapped[int] = mapped_column(primary_key=True)
-        user_from_id: Mapped[int] = mapped_column(
-            ForeignKey("user.id"), nullable=False)
-        user_to_id: Mapped[int] = mapped_column(
-            ForeignKey("user.id"), nullable=False)
-        user_from: Mapped["User"] = relationship(
-        back_populates="following", foreign_keys=[user_from_id]
-    )
-        user_to: Mapped["User"] = relationship(
-        back_populates="followers", foreign_keys=[user_to_id]
-    )
-        
-from eralchemy2 import render_er
-render_er(db.Model, "diagram.png")
+    def serialize(self):
+        data = {
+            "id": self.id,
+            "user_id": self.user_id,
+            "planet": self.planet.serialize() if self.planet else None,
+            "character": self.character.serialize() if self.character else None,
+            "vehicle": self.vehicle.serialize() if self.vehicle else None
+        }

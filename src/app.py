@@ -4,13 +4,17 @@ This module takes care of starting the API Server, Loading the DB and Adding the
 import os
 from flask import Flask, request, jsonify, url_for
 from flask_migrate import Migrate
-from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
 from models import db, User
-#from models import Person
+from routes.people import people_bp
+from routes.planets import planets_bp
+from routes.vehicles import vehicles_bp
+from routes.users import users_bp
+from routes.favorites import favorites_bp
 
+#from models import Person
 app = Flask(__name__)
 app.url_map.strict_slashes = False
 
@@ -25,6 +29,13 @@ MIGRATE = Migrate(app, db)
 db.init_app(app)
 CORS(app)
 setup_admin(app)
+
+app.register_blueprint(people_bp)
+app.register_blueprint(planets_bp)
+app.register_blueprint(vehicles_bp)
+app.register_blueprint(users_bp)
+app.register_blueprint(favorites_bp)
+
 
 # Handle/serialize errors like a JSON object
 @app.errorhandler(APIException)
