@@ -16,7 +16,7 @@ class User(db.Model):
         String(120), unique=True, nullable=False)
     password: Mapped[str] = mapped_column(nullable=False)
 
-    favorite_list: Mapped[List["Favorite"]] = relationship("Favorite", back_populates="user")
+    favorite_list: Mapped[List["Favorites"]] = relationship("Favorite", back_populates="user")
 
     def serialize(self):
         return {
@@ -33,7 +33,7 @@ class Planet(db.Model):
     climate: Mapped[str] = mapped_column(String(100))
     terrain: Mapped[str] = mapped_column(String(100))
 
-    favorites: Mapped[List["Favorite"]] = relationship("Favorite", back_populates="planet")
+    favorites: Mapped[List["Favorites"]] = relationship("Favorite", back_populates="planet")
 
     def serialize(self):
         return {
@@ -51,7 +51,7 @@ class People(db.Model):
     birth_year: Mapped[str] = mapped_column(String(20))
     gender: Mapped[str] = mapped_column(String(20))
 
-    favorites: Mapped[List["Favorite"]] = relationship("Favorite", back_populates="character")
+    favorites: Mapped[List["Favorites"]] = relationship("Favorite", back_populates="character")
 
     def serialize(self):
         return {
@@ -68,7 +68,7 @@ class Vehicle(db.Model):
     vehicle_class: Mapped[str] = mapped_column(String(100))
     manufacturer: Mapped[str] = mapped_column(String(100))
 
-    favorites: Mapped[List["Favorite"]] = relationship("Favorite", back_populates="vehicle")
+    favorites: Mapped[List["Favorites"]] = relationship("Favorite", back_populates="vehicle")
 
     def serialize(self):
         return {

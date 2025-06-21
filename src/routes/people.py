@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify
 from services.people_service import get_all_people, get_person_by_id
-from dtos.serializers import people_serializer
+from dto.serializers import people_serializer
 
 people_bp = Blueprint('people_bp', __name__)
 

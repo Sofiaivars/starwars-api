@@ -37,3 +37,20 @@ def remove_favorite_people(user_id, people_id):
         db.session.commit()
         return True
     return False
+
+def add_favorite_vehicle(user_id, vehicle_id):
+    exists = Favorites.query.filter_by(user_id=user_id, vehicle_id=vehicle_id).first()
+    if exists:
+        return None
+    fav = Favorites(user_id=user_id, vehicle_id=vehicle_id)
+    db.session.add(fav)
+    db.session.commit()
+    return fav.serialize()
+
+def remove_favorite_vehicle(user_id, vehicle_id):
+    fav = Favorites.query.filter_by(user_id=user_id, vehicle_id=vehicle_id).first()
+    if fav:
+        db.session.delete(fav)
+        db.session.commit()
+        return True
+    return False

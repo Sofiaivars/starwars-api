@@ -9,10 +9,11 @@ from utils import APIException, generate_sitemap
 from admin import setup_admin
 from models import db, User
 from routes.people import people_bp
-from routes.planets import planets_bp
-from routes.vehicles import vehicles_bp
+from routes.planet import planet_bp
+from routes.vehicle import vehicle_bp
 from routes.users import users_bp
 from routes.favorites import favorites_bp
+
 
 #from models import Person
 app = Flask(__name__)
@@ -31,8 +32,8 @@ CORS(app)
 setup_admin(app)
 
 app.register_blueprint(people_bp)
-app.register_blueprint(planets_bp)
-app.register_blueprint(vehicles_bp)
+app.register_blueprint(planet_bp)
+app.register_blueprint(vehicle_bp)
 app.register_blueprint(users_bp)
 app.register_blueprint(favorites_bp)
 

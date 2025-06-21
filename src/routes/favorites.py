@@ -4,7 +4,9 @@ from services.favorite_service import (
     add_favorite_planet,
     add_favorite_people,
     remove_favorite_planet,
-    remove_favorite_people
+    remove_favorite_people,
+    add_favorite_vehicle,
+    remove_favorite_vehicle    
 )
 
 favorites_bp = Blueprint('favorites', __name__, url_prefix='/favorites')
@@ -40,6 +42,20 @@ def delete_planet_favorite(planet_id):
 @favorites_bp.route('/people/<int:people_id>', methods=['DELETE'])
 def delete_people_favorite(people_id):
     success = remove_favorite_people(CURRENT_USER_ID, people_id)
+    if success:
+        return jsonify({"message": "Favorite removed"}), 200
+    return jsonify({"message": "Favorite not found"}), 404
+
+@favorites_bp.route('/vehicle/<int:vehicle_id>', methods=['POST'])
+def add_vehicle_favorite(vehicle_id):
+    fav = add_favorite_vehicle(CURRENT_USER_ID, vehicle_id)
+    if not fav:
+        return jsonify({"message": "Favorite already exists"}), 400
+    return jsonify(fav), 201
+
+@favorites_bp.route('/vehicle/<int:vehicle_id>', methods=['DELETE'])
+def delete_vehicle_favorite(vehicle_id):
+    success = remove_favorite_vehicle(CURRENT_USER_ID, vehicle_id)
     if success:
         return jsonify({"message": "Favorite removed"}), 200
     return jsonify({"message": "Favorite not found"}), 404
